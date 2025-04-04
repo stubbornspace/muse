@@ -9,19 +9,6 @@ const Editor = ({ selectedNote, setSelectedNote, notes, setNotes }) => {
     >
       <View style={styles.editorContainer}>
         <TextInput
-          style={styles.titleInput}
-          value={selectedNote.title}
-          onChangeText={(text) => {
-            const updatedNotes = notes.map(note =>
-              note.id === selectedNote.id
-                ? { ...note, title: text }
-                : note
-            );
-            setNotes(updatedNotes);
-            setSelectedNote({ ...selectedNote, title: text });
-          }}
-        />
-        <TextInput
           style={styles.contentInput}
           multiline
           value={selectedNote.content}
@@ -41,15 +28,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 15,
     alignItems: 'center',
-  },
-  titleInput: {
-    padding: 15,
-    fontSize: 32,
-    marginBottom: 15,
-    color: '#fff',
-    textAlign: 'center',
-    width: '100%',
-    maxWidth: 800,
   },
   contentInput: {
     flex: 1,

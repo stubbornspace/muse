@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, ImageBackground, TouchableOpacity, SafeAreaView } from 'react-native';
+import { StyleSheet, View, ImageBackground, TouchableOpacity, SafeAreaView, Alert, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ErrorBoundary from './ErrorBoundary';
@@ -26,7 +26,7 @@ export default function App() {
   const addNote = async () => {
     const newNote = {
       id: Date.now().toString(),
-      title: 'New Note',
+      title: 'Untitled Note',
       content: '',
       category: 'default',
       tags: [],
@@ -40,14 +40,37 @@ export default function App() {
 
   const saveNote = () => {
     if (selectedNote) {
-      const updatedNotes = notes.map(note => 
-        note.id === selectedNote.id 
-          ? { ...note, content: selectedNote.content }
-          : note
+      // Prompt for title
+      Alert.prompt(
+        'Save Note',
+        'Enter a title for your note:',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+            onPress: () => console.log('Cancel Pressed')
+          },
+          {
+            text: 'Save',
+            onPress: (title) => {
+              if (title && title.trim()) {
+                const updatedNotes = notes.map(note => 
+                  note.id === selectedNote.id 
+                    ? { ...note, title: title.trim(), content: selectedNote.content }
+                    : note
+                );
+                setNotes(updatedNotes);
+                setSelectedNote(null);
+                setMenuVisible(false);
+              } else {
+                Alert.alert('Error', 'Please enter a valid title');
+              }
+            }
+          }
+        ],
+        'plain-text',
+        selectedNote.title === 'Untitled Note' ? '' : selectedNote.title
       );
-      setNotes(updatedNotes);
-      setSelectedNote(null);
-      setMenuVisible(false);
     }
   };
 
