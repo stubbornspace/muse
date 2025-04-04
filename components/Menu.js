@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, Modal } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, Modal, Animated, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const Menu = ({ 
@@ -9,13 +9,32 @@ const Menu = ({
   addNote, 
   saveNote, 
   confirmDelete, 
-  setSelectedNote 
+  setSelectedNote,
+  hideMenuButton = false
 }) => {
+  const [slideAnim] = React.useState(new Animated.Value(300));
+
+  React.useEffect(() => {
+    if (menuVisible) {
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(slideAnim, {
+        toValue: 300,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [menuVisible]);
+
   return (
     <Modal
       visible={menuVisible}
       transparent={true}
-      animationType="fade"
+      animationType="none"
       onRequestClose={() => setMenuVisible(false)}
     >
       <TouchableOpacity 
@@ -23,7 +42,22 @@ const Menu = ({
         activeOpacity={1}
         onPress={() => setMenuVisible(false)}
       >
-        <View style={styles.menuContainer}>
+        <Animated.View 
+          style={[
+            styles.drawerContainer,
+            { transform: [{ translateX: slideAnim }] }
+          ]}
+        >
+          <View style={styles.drawerHeader}>
+            <Text style={styles.drawerTitle}>Menu</Text>
+            <TouchableOpacity 
+              style={styles.closeButton}
+              onPress={() => setMenuVisible(false)}
+            >
+              <Ionicons name="close" size={32} color="#fff" />
+            </TouchableOpacity>
+          </View>
+          
           {!selectedNote ? (
             <TouchableOpacity style={styles.menuItem} onPress={addNote}>
               <Ionicons name="add-circle-outline" size={24} color="#fff" />
@@ -51,7 +85,7 @@ const Menu = ({
               </TouchableOpacity>
             </>
           )}
-        </View>
+        </Animated.View>
       </TouchableOpacity>
     </Modal>
   );
@@ -60,25 +94,51 @@ const Menu = ({
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'transparent',
   },
-  menuContainer: {
+  drawerContainer: {
     position: 'absolute',
-    top: 60,
-    right: 15,
-    backgroundColor: 'rgba(0,0,0,0.8)',
-    borderRadius: 10,
-    padding: 10,
+    top: 0,
+    right: 0,
+    bottom: 0,
+    width: 250,
+    backgroundColor: 'rgba(0, 0, 30, 0.5)',
+    padding: 20,
+    paddingTop: 40,
+    shadowColor: '#000',
+    shadowOffset: { width: -2, height: 0 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  drawerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.2)',
+  },
+  drawerTitle: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
+    padding: 15,
+    marginBottom: 5,
+    borderRadius: 5,
   },
   menuText: {
     color: '#fff',
     fontSize: 16,
-    marginLeft: 10,
+    marginLeft: 15,
+  },
+  closeButton: {
+    padding: 5,
   },
 });
 

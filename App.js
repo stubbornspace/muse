@@ -115,12 +115,14 @@ export default function App() {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <TouchableOpacity 
-        style={styles.menuButton}
-        onPress={() => setMenuVisible(true)}
-      >
-        <Ionicons name="menu" size={32} color="#fff" />
-      </TouchableOpacity>
+      {!menuVisible && (
+        <TouchableOpacity 
+          style={styles.menuButton}
+          onPress={() => setMenuVisible(true)}
+        >
+          <Ionicons name="menu" size={32} color="#fff" />
+        </TouchableOpacity>
+      )}
     </View>
   );
 
@@ -184,5 +186,6 @@ const styles = StyleSheet.create({
   },
   menuButton: {
     padding: 5,
+    marginTop: 10,
   },
 });
