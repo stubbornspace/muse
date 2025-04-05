@@ -10,6 +10,7 @@ const Menu = ({
   saveNote, 
   confirmDelete, 
   setSelectedNote,
+  exportNote,
   hideMenuButton = false
 }) => {
   const [slideAnim] = React.useState(new Animated.Value(300));
@@ -68,6 +69,10 @@ const Menu = ({
               <TouchableOpacity style={styles.menuItem} onPress={saveNote}>
                 <Ionicons name="save-outline" size={24} color="#fff" />
                 <Text style={styles.menuText}>Save</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.menuItem} onPress={exportNote}>
+                <Ionicons name="download-outline" size={24} color="#fff" />
+                <Text style={styles.menuText}>Export</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.menuItem} onPress={confirmDelete}>
                 <Ionicons name="trash-outline" size={24} color="#fff" />

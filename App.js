@@ -3,6 +3,8 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, ImageBackground, TouchableOpacity, SafeAreaView, Alert, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import ErrorBoundary from './ErrorBoundary';
 import Editor from './components/Editor';
 import NoteList from './components/NoteList';
@@ -113,6 +115,33 @@ export default function App() {
     }
   };
 
+  const exportNote = async () => {
+    if (selectedNote) {
+      try {
+        const fileName = `${selectedNote.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.txt`;
+        const filePath = `${FileSystem.documentDirectory}${fileName}`;
+        
+        // Create the file content
+        const fileContent = `${selectedNote.title}\n\n${selectedNote.content}`;
+        
+        // Write the file
+        await FileSystem.writeAsStringAsync(filePath, fileContent);
+        
+        // Share the file
+        await Sharing.shareAsync(filePath, {
+          mimeType: 'text/plain',
+          dialogTitle: 'Export Note',
+          UTI: 'public.plain-text'
+        });
+        
+        setMenuVisible(false);
+      } catch (error) {
+        Alert.alert('Error', 'Failed to export note');
+        console.error('Export error:', error);
+      }
+    }
+  };
+
   const renderHeader = () => (
     <View style={styles.header}>
       {!menuVisible && (
@@ -142,6 +171,7 @@ export default function App() {
             saveNote={saveNote}
             confirmDelete={confirmDelete}
             setSelectedNote={setSelectedNote}
+            exportNote={exportNote}
           />
           <View style={styles.overlay}>
             {selectedNote ? (
