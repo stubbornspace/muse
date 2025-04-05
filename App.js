@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import { Audio } from 'expo-av';
 import ErrorBoundary from './ErrorBoundary';
 import Editor from './components/Editor';
 import NoteList from './components/NoteList';
@@ -14,6 +15,42 @@ export default function App() {
   const [notes, setNotes] = useState([]);
   const [selectedNote, setSelectedNote] = useState(null);
   const [menuVisible, setMenuVisible] = useState(false);
+  const [sound, setSound] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  // Configure audio settings and load audio
+  useEffect(() => {
+    const setupAudio = async () => {
+      try {
+        // Configure audio mode
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: false,
+          staysActiveInBackground: true,
+          playsInSilentModeIOS: true,
+          shouldDuckAndroid: true,
+          playThroughEarpieceAndroid: false,
+        });
+        
+        // Load the audio file
+        const { sound: audioSound } = await Audio.Sound.createAsync(
+          require('./audio/ambients.m4a'),
+          { shouldPlay: false, isLooping: true }
+        );
+        setSound(audioSound);
+      } catch (error) {
+        console.error('Error setting up audio:', error);
+      }
+    };
+    
+    setupAudio();
+    
+    // Cleanup function to unload audio when app closes
+    return () => {
+      if (sound) {
+        sound.unloadAsync();
+      }
+    };
+  }, []);
 
   // Auto-loads notes on app start
   useEffect(() => {
@@ -24,6 +61,21 @@ export default function App() {
   useEffect(() => {
     saveNotesToStorage();
   }, [notes]);
+
+  const togglePlayback = async () => {
+    if (!sound) return;
+    
+    try {
+      if (isPlaying) {
+        await sound.pauseAsync();
+      } else {
+        await sound.playAsync();
+      }
+      setIsPlaying(!isPlaying);
+    } catch (error) {
+      console.error('Error toggling playback:', error);
+    }
+  };
 
   const addNote = async () => {
     const newNote = {
@@ -144,14 +196,12 @@ export default function App() {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      {!menuVisible && (
-        <TouchableOpacity 
-          style={styles.menuButton}
-          onPress={() => setMenuVisible(true)}
-        >
-          <Ionicons name="menu" size={32} color="#fff" />
-        </TouchableOpacity>
-      )}
+      <TouchableOpacity 
+        style={styles.menuButton}
+        onPress={() => setMenuVisible(!menuVisible)}
+      >
+        <Ionicons name="menu" size={24} color="#fff" />
+      </TouchableOpacity>
     </View>
   );
 
@@ -172,6 +222,8 @@ export default function App() {
             confirmDelete={confirmDelete}
             setSelectedNote={setSelectedNote}
             exportNote={exportNote}
+            isPlaying={isPlaying}
+            togglePlayback={togglePlayback}
           />
           <View style={styles.overlay}>
             {selectedNote ? (
@@ -215,7 +267,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
   },
   menuButton: {
-    padding: 5,
-    marginTop: 10,
+    position: 'absolute',
+    top: 10,
+    right: 15,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderRadius: 30,
+    padding: 10,
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 100,
   },
 });
