@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, ImageBackground, TouchableOpacity, SafeAreaView, Alert, TextInput } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { StyleSheet, View, ImageBackground, SafeAreaView, Alert, TouchableWithoutFeedback } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { Audio } from 'expo-av';
-import ErrorBoundary from './ErrorBoundary';
+import ErrorBoundary from './components/ErrorBoundary';
 import Editor from './components/Editor';
 import NoteList from './components/NoteList';
 import Menu from './components/Menu';
@@ -14,9 +13,10 @@ import Menu from './components/Menu';
 export default function App() {
   const [notes, setNotes] = useState([]);
   const [selectedNote, setSelectedNote] = useState(null);
-  const [menuVisible, setMenuVisible] = useState(false);
   const [sound, setSound] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const menuTimeoutRef = useRef(null);
 
   // Configure audio settings and load audio
   useEffect(() => {
@@ -33,7 +33,7 @@ export default function App() {
         
         // Load the audio file
         const { sound: audioSound } = await Audio.Sound.createAsync(
-          require('./audio/ambients.m4a'),
+          require('./audio/homeworld.m4a'),
           { shouldPlay: false, isLooping: true }
         );
         setSound(audioSound);
@@ -62,6 +62,28 @@ export default function App() {
     saveNotesToStorage();
   }, [notes]);
 
+  // Handle menu visibility timeout
+  useEffect(() => {
+    if (isMenuVisible) {
+      // Clear any existing timeout
+      if (menuTimeoutRef.current) {
+        clearTimeout(menuTimeoutRef.current);
+      }
+      
+      // Set a new timeout to hide the menu after 3 seconds of inactivity
+      menuTimeoutRef.current = setTimeout(() => {
+        setIsMenuVisible(false);
+      }, 3000);
+    }
+    
+    // Cleanup timeout on unmount or when menu visibility changes
+    return () => {
+      if (menuTimeoutRef.current) {
+        clearTimeout(menuTimeoutRef.current);
+      }
+    };
+  }, [isMenuVisible]);
+
   const togglePlayback = async () => {
     if (!sound) return;
     
@@ -89,7 +111,6 @@ export default function App() {
     };
     setNotes([...notes, newNote]);
     setSelectedNote(newNote);
-    setMenuVisible(false);
   };
 
   const saveNote = () => {
@@ -115,7 +136,6 @@ export default function App() {
                 );
                 setNotes(updatedNotes);
                 setSelectedNote(null);
-                setMenuVisible(false);
               } else {
                 Alert.alert('Error', 'Please enter a valid title');
               }
@@ -133,7 +153,6 @@ export default function App() {
       const updatedNotes = notes.filter(note => note.id !== selectedNote.id);
       setNotes(updatedNotes);
       setSelectedNote(null);
-      setMenuVisible(false);
     }
   };
 
@@ -185,8 +204,6 @@ export default function App() {
           dialogTitle: 'Export Note',
           UTI: 'public.plain-text'
         });
-        
-        setMenuVisible(false);
       } catch (error) {
         Alert.alert('Error', 'Failed to export note');
         console.error('Export error:', error);
@@ -194,16 +211,9 @@ export default function App() {
     }
   };
 
-  const renderHeader = () => (
-    <View style={styles.header}>
-      <TouchableOpacity 
-        style={styles.menuButton}
-        onPress={() => setMenuVisible(!menuVisible)}
-      >
-        <Ionicons name="menu" size={24} color="#fff" />
-      </TouchableOpacity>
-    </View>
-  );
+  const handleScreenTouch = () => {
+    setIsMenuVisible(true);
+  };
 
   return (
     <ErrorBoundary>
@@ -211,37 +221,35 @@ export default function App() {
         source={require('./assets/space.jpg')} 
         style={styles.container}
       >
-        <SafeAreaView style={styles.safeArea}>
-          {renderHeader()}
-          <Menu 
-            menuVisible={menuVisible}
-            setMenuVisible={setMenuVisible}
-            selectedNote={selectedNote}
-            addNote={addNote}
-            saveNote={saveNote}
-            confirmDelete={confirmDelete}
-            setSelectedNote={setSelectedNote}
-            exportNote={exportNote}
-            isPlaying={isPlaying}
-            togglePlayback={togglePlayback}
-          />
-          <View style={styles.overlay}>
-            {selectedNote ? (
-              <Editor 
-                selectedNote={selectedNote}
-                setSelectedNote={setSelectedNote}
-                notes={notes}
-                setNotes={setNotes}
-              />
-            ) : (
-              <NoteList 
-                notes={notes}
-                setSelectedNote={setSelectedNote}
-              />
-            )}
-            <StatusBar style="light" />
-          </View>
-        </SafeAreaView>
+        <TouchableWithoutFeedback onPress={handleScreenTouch}>
+          <SafeAreaView style={styles.safeArea}>
+            <Menu 
+              selectedNote={selectedNote}
+              addNote={addNote}
+              saveNote={saveNote}
+              confirmDelete={confirmDelete}
+              setSelectedNote={setSelectedNote}
+              exportNote={exportNote}
+              isPlaying={isPlaying}
+              togglePlayback={togglePlayback}
+              isVisible={isMenuVisible}
+            />
+            <View style={styles.overlay}>
+              {selectedNote ? (
+                <Editor 
+                  selectedNote={selectedNote}
+                  setSelectedNote={setSelectedNote}
+                />
+              ) : (
+                <NoteList 
+                  notes={notes}
+                  setSelectedNote={setSelectedNote}
+                />
+              )}
+              <StatusBar style="light" />
+            </View>
+          </SafeAreaView>
+        </TouchableWithoutFeedback>
       </ImageBackground>
     </ErrorBoundary>
   );
@@ -258,25 +266,5 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-  },
-  header: {
-    height: 50,
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    paddingHorizontal: 15,
-  },
-  menuButton: {
-    position: 'absolute',
-    top: 10,
-    right: 15,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    borderRadius: 30,
-    padding: 10,
-    width: 50,
-    height: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 100,
-  },
+  }
 });

@@ -1,38 +1,18 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View, Modal, Animated } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const Menu = ({ 
-  menuVisible, 
-  setMenuVisible, 
   selectedNote, 
   addNote, 
   saveNote, 
   confirmDelete, 
   setSelectedNote,
   exportNote,
-  hideMenuButton = false,
   isPlaying,
-  togglePlayback
+  togglePlayback,
+  isVisible
 }) => {
-  const [slideAnim] = React.useState(new Animated.Value(0));
-
-  React.useEffect(() => {
-    if (menuVisible) {
-      Animated.timing(slideAnim, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
-    } else {
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [menuVisible]);
-
   const menuItems = !selectedNote ? [
     { icon: "add-circle-outline", onPress: addNote },
     { icon: isPlaying ? "musical-notes" : "musical-notes-outline", onPress: togglePlayback }
@@ -45,63 +25,34 @@ const Menu = ({
       icon: "home-outline", 
       onPress: () => {
         setSelectedNote(null);
-        setMenuVisible(false);
       }
     }
   ];
 
   return (
-    <Modal
-      visible={menuVisible}
-      transparent={true}
-      animationType="none"
-      onRequestClose={() => setMenuVisible(false)}
+    <Animated.View 
+      style={[
+        styles.menuContainer,
+        { opacity: isVisible ? 1 : 0 }
+      ]}
     >
-      <TouchableOpacity 
-        style={styles.modalOverlay}
-        activeOpacity={1}
-        onPress={() => setMenuVisible(false)}
-      >
-        <Animated.View 
-          style={[
-            styles.dropdownContainer,
-            { 
-              opacity: slideAnim,
-              transform: [
-                { 
-                  translateY: slideAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0, 10]
-                  })
-                }
-              ]
-            }
-          ]}
+      {menuItems.map((item, index) => (
+        <TouchableOpacity 
+          key={index} 
+          style={styles.menuItem} 
+          onPress={item.onPress}
         >
-          <View style={styles.menuSpacer} />
-          {menuItems.map((item, index) => (
-            <TouchableOpacity 
-              key={index} 
-              style={styles.menuItem} 
-              onPress={item.onPress}
-            >
-              <View style={styles.iconContainer}>
-                <Ionicons name={item.icon} size={24} color="#fff" />
-              </View>
-            </TouchableOpacity>
-          ))}
-        </Animated.View>
-      </TouchableOpacity>
-    </Modal>
+          <View style={styles.iconContainer}>
+            <Ionicons name={item.icon} size={24} color="#fff" />
+          </View>
+        </TouchableOpacity>
+      ))}
+    </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'transparent',
-  },
-  dropdownContainer: {
+  menuContainer: {
     position: 'absolute',
     top: 60,
     right: 15,
@@ -109,9 +60,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     padding: 10,
     zIndex: 100,
-  },
-  menuSpacer: {
-    height: 10,
   },
   menuItem: {
     marginBottom: 10,

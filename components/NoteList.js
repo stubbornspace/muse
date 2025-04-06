@@ -27,6 +27,7 @@ const styles = StyleSheet.create({
   homeContainer: {
     flex: 1,
     padding: 15,
+    paddingTop: 60,
     alignItems: 'center',
   },
   notesList: {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, TextInput, View, KeyboardAvoidingView, Platform } from 'react-native';
 
-const Editor = ({ selectedNote, setSelectedNote, notes, setNotes }) => {
+const Editor = ({ selectedNote, setSelectedNote }) => {
   return (
     <KeyboardAvoidingView 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -26,7 +26,9 @@ const Editor = ({ selectedNote, setSelectedNote, notes, setNotes }) => {
 const styles = StyleSheet.create({
   editorContainer: {
     flex: 1,
-    padding: 15,
+    paddingHorizontal: 30,
+    paddingTop: 60,
+    paddingBottom: 15,
     alignItems: 'center',
   },
   contentInput: {
