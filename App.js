@@ -9,6 +9,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import Editor from './components/Editor';
 import NoteList from './components/NoteList';
 import Menu from './components/Menu';
+import ChatBot from './components/ChatBot';
 
 export default function App() {
   const [notes, setNotes] = useState([]);
@@ -16,6 +17,7 @@ export default function App() {
   const [sound, setSound] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const [isChatVisible, setIsChatVisible] = useState(false);
   const menuTimeoutRef = useRef(null);
 
   // Configure audio settings and load audio
@@ -115,36 +117,17 @@ export default function App() {
 
   const saveNote = () => {
     if (selectedNote) {
-      // Prompt for title
-      Alert.prompt(
-        'Save Note',
-        'Enter a title for your note:',
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-            onPress: () => console.log('Cancel Pressed')
-          },
-          {
-            text: 'Save',
-            onPress: (title) => {
-              if (title && title.trim()) {
-                const updatedNotes = notes.map(note => 
-                  note.id === selectedNote.id 
-                    ? { ...note, title: title.trim(), content: selectedNote.content }
-                    : note
-                );
-                setNotes(updatedNotes);
-                setSelectedNote(null);
-              } else {
-                Alert.alert('Error', 'Please enter a valid title');
-              }
-            }
-          }
-        ],
-        'plain-text',
-        selectedNote.title === 'Untitled Note' ? '' : selectedNote.title
-      );
+      if (selectedNote.title && selectedNote.title.trim()) {
+        const updatedNotes = notes.map(note => 
+          note.id === selectedNote.id 
+            ? { ...note, title: selectedNote.title.trim(), content: selectedNote.content }
+            : note
+        );
+        setNotes(updatedNotes);
+        setSelectedNote(null);
+      } else {
+        Alert.alert('Error', 'Please enter a valid title');
+      }
     }
   };
 
@@ -215,41 +198,67 @@ export default function App() {
     setIsMenuVisible(true);
   };
 
+  const toggleChat = () => {
+    setIsChatVisible(!isChatVisible);
+  };
+
+  const handleCopyToEditor = (content) => {
+    if (selectedNote) {
+      const updatedNotes = notes.map(note => 
+        note.id === selectedNote.id 
+          ? { ...note, content: note.content + '\n\n' + content }
+          : note
+      );
+      setNotes(updatedNotes);
+      setSelectedNote({ ...selectedNote, content: selectedNote.content + '\n\n' + content });
+    }
+  };
+
   return (
     <ErrorBoundary>
       <ImageBackground 
         source={require('./assets/space.jpg')} 
         style={styles.container}
       >
-        <TouchableWithoutFeedback onPress={handleScreenTouch}>
-          <SafeAreaView style={styles.safeArea}>
-            <Menu 
-              selectedNote={selectedNote}
-              addNote={addNote}
-              saveNote={saveNote}
-              confirmDelete={confirmDelete}
-              setSelectedNote={setSelectedNote}
-              exportNote={exportNote}
-              isPlaying={isPlaying}
-              togglePlayback={togglePlayback}
-              isVisible={isMenuVisible}
-            />
-            <View style={styles.overlay}>
-              {selectedNote ? (
-                <Editor 
-                  selectedNote={selectedNote}
-                  setSelectedNote={setSelectedNote}
-                />
-              ) : (
-                <NoteList 
-                  notes={notes}
-                  setSelectedNote={setSelectedNote}
-                />
-              )}
-              <StatusBar style="light" />
-            </View>
-          </SafeAreaView>
-        </TouchableWithoutFeedback>
+        <View style={styles.overlay}>
+          <TouchableWithoutFeedback onPress={handleScreenTouch}>
+            <SafeAreaView style={styles.safeArea}>
+              <Menu 
+                selectedNote={selectedNote}
+                addNote={addNote}
+                saveNote={saveNote}
+                confirmDelete={confirmDelete}
+                setSelectedNote={setSelectedNote}
+                exportNote={exportNote}
+                isPlaying={isPlaying}
+                togglePlayback={togglePlayback}
+                isVisible={isMenuVisible}
+                toggleChat={toggleChat}
+                isChatVisible={isChatVisible}
+              />
+              <View style={styles.contentContainer}>
+                {isChatVisible ? (
+                  <ChatBot 
+                    isVisible={true}
+                    onClose={toggleChat}
+                    onCopyToEditor={handleCopyToEditor}
+                  />
+                ) : selectedNote ? (
+                  <Editor 
+                    selectedNote={selectedNote}
+                    setSelectedNote={setSelectedNote}
+                  />
+                ) : (
+                  <NoteList 
+                    notes={notes}
+                    setSelectedNote={setSelectedNote}
+                  />
+                )}
+                <StatusBar style="light" />
+              </View>
+            </SafeAreaView>
+          </TouchableWithoutFeedback>
+        </View>
       </ImageBackground>
     </ErrorBoundary>
   );
@@ -261,10 +270,14 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  },
   safeArea: {
     flex: 1,
   },
-  overlay: {
+  contentContainer: {
     flex: 1,
   }
 });

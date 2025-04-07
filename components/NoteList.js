@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View, FlatList } from 'react-native';
+import { globalStyles } from '../config/styles';
 
 const NoteList = ({ notes, setSelectedNote }) => {
   const renderNoteItem = useCallback(({ item }) => (
@@ -26,8 +27,8 @@ const NoteList = ({ notes, setSelectedNote }) => {
 const styles = StyleSheet.create({
   homeContainer: {
     flex: 1,
-    padding: 15,
-    paddingTop: 60,
+    paddingHorizontal: globalStyles.padding.horizontal,
+    paddingVertical: globalStyles.padding.vertical,
     alignItems: 'center',
   },
   notesList: {
@@ -41,9 +42,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   noteTitle: {
-    fontSize: 24,
-    color: '#fff',
-    textAlign: 'center',
+    color: globalStyles.colors.text,
+    fontSize: globalStyles.fontSize.default,
+    marginBottom: 5,
   },
 });
 

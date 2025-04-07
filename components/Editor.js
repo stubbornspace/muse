@@ -1,45 +1,58 @@
 import React from 'react';
-import { StyleSheet, TextInput, View, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, View, TextInput } from 'react-native';
+import { globalStyles } from '../config/styles';
 
 const Editor = ({ selectedNote, setSelectedNote }) => {
+  const handleTitleChange = (text) => {
+    setSelectedNote({ ...selectedNote, title: text });
+  };
+
+  const handleContentChange = (text) => {
+    setSelectedNote({ ...selectedNote, content: text });
+  };
+
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{ flex: 1 }}
-    >
-      <View style={styles.editorContainer}>
-        <TextInput
-          style={styles.contentInput}
-          multiline
-          value={selectedNote.content}
-          onChangeText={(text) => {
-            setSelectedNote({ ...selectedNote, content: text });
-          }}
-          placeholder="Start typing your note..."
-          placeholderTextColor="#888"
-        />
-      </View>
-    </KeyboardAvoidingView>
+    <View style={styles.container}>
+      <TextInput
+        style={styles.titleInput}
+        value={selectedNote.title}
+        onChangeText={handleTitleChange}
+        placeholder="Enter title..."
+        placeholderTextColor="rgba(255, 255, 255, 0.5)"
+      />
+      <TextInput
+        style={styles.contentInput}
+        value={selectedNote.content}
+        onChangeText={handleContentChange}
+        placeholder="Start writing..."
+        placeholderTextColor="rgba(255, 255, 255, 0.5)"
+        multiline
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  editorContainer: {
+  container: {
     flex: 1,
-    paddingHorizontal: 30,
-    paddingTop: 60,
-    paddingBottom: 15,
-    alignItems: 'center',
+    paddingHorizontal: globalStyles.padding.horizontal,
+    paddingVertical: globalStyles.padding.vertical,
+  },
+  titleInput: {
+    width: '100%',
+    maxWidth: 800,
+    fontSize: globalStyles.fontSize.title,
+    color: globalStyles.colors.text,
+    textAlign: 'center',
+    marginBottom: 20,
+    padding: 10,
   },
   contentInput: {
     flex: 1,
-    padding: 15,
-    fontSize: 24,
-    color: '#fff',
+    color: globalStyles.colors.text,
+    fontSize: globalStyles.fontSize.default,
     textAlignVertical: 'top',
-    width: '100%',
-    maxWidth: 800,
-    marginBottom: 60,
+    padding: 10,
   },
 });
 
