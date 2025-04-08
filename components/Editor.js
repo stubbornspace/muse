@@ -4,22 +4,24 @@ import { globalStyles } from '../config/styles';
 
 const Editor = ({ selectedNote, setSelectedNote }) => {
   const handleTitleChange = (text) => {
-    setSelectedNote({ ...selectedNote, title: text });
+    setSelectedNote(prev => ({ ...prev, title: text }));
   };
 
   const handleContentChange = (text) => {
-    setSelectedNote({ ...selectedNote, content: text });
+    setSelectedNote(prev => ({ ...prev, content: text }));
   };
 
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.titleInput}
-        value={selectedNote.title}
-        onChangeText={handleTitleChange}
-        placeholder="Enter title..."
-        placeholderTextColor="rgba(255, 255, 255, 0.5)"
-      />
+      <View style={styles.titleContainer}>
+        <TextInput
+          style={styles.titleInput}
+          value={selectedNote.title}
+          onChangeText={handleTitleChange}
+          placeholder="Title"
+          placeholderTextColor="rgba(255, 255, 255, 0.5)"
+        />
+      </View>
       <TextInput
         style={styles.contentInput}
         value={selectedNote.content}
@@ -36,23 +38,34 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: globalStyles.padding.horizontal,
-    paddingVertical: globalStyles.padding.vertical,
+    paddingBottom: globalStyles.padding.bottom,
+  },
+  titleContainer: {
+    position: 'absolute',
+    top: 60,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    paddingHorizontal: globalStyles.padding.horizontal,
+    alignItems: 'center',
   },
   titleInput: {
     width: '100%',
     maxWidth: 800,
-    fontSize: globalStyles.fontSize.title,
-    color: globalStyles.colors.text,
+    fontSize: 28,
+    color: '#fff',
     textAlign: 'center',
     marginBottom: 20,
     padding: 10,
   },
   contentInput: {
     flex: 1,
-    color: globalStyles.colors.text,
-    fontSize: globalStyles.fontSize.default,
+    color: '#fff',
+    fontSize: 18,
+    lineHeight: 24,
     textAlignVertical: 'top',
     padding: 10,
+    marginTop: 120,
   },
 });
 

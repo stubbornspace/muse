@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   StyleSheet, 
   View, 
@@ -13,11 +13,70 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../config/styles';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ChatBot = ({ isVisible, onClose, onCopyToEditor }) => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Load chat history when component mounts
+  useEffect(() => {
+    loadChatHistory();
+  }, []);
+
+  // Save messages to history when they change
+  useEffect(() => {
+    if (messages.length > 0) {
+      saveChatHistory();
+    }
+  }, [messages]);
+
+  const loadChatHistory = async () => {
+    try {
+      const history = await AsyncStorage.getItem('chatHistory');
+      if (history) {
+        setMessages(JSON.parse(history));
+      }
+    } catch (error) {
+      console.error('Error loading chat history:', error);
+    }
+  };
+
+  const saveChatHistory = async () => {
+    try {
+      await AsyncStorage.setItem('chatHistory', JSON.stringify(messages));
+    } catch (error) {
+      console.error('Error saving chat history:', error);
+    }
+  };
+
+  const clearChatHistory = async () => {
+    Alert.alert(
+      'Clear Chat History',
+      'Are you sure you want to delete all chat messages? This action cannot be undone.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel'
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await AsyncStorage.removeItem('chatHistory');
+              setMessages([]);
+              Alert.alert('Success', 'Chat history cleared');
+            } catch (error) {
+              console.error('Error clearing chat history:', error);
+              Alert.alert('Error', 'Failed to clear chat history');
+            }
+          }
+        }
+      ]
+    );
+  };
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -84,10 +143,8 @@ const ChatBot = ({ isVisible, onClose, onCopyToEditor }) => {
       style={styles.container}
     >
       <View style={styles.header}>
-        <TouchableOpacity onPress={onClose} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={globalStyles.colors.text} />
-        </TouchableOpacity>
-        <Text style={styles.title}>HAL3000</Text>
+        <View style={styles.placeholder} />
+        <Text style={styles.title}>Ask HAL</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -134,6 +191,12 @@ const ChatBot = ({ isVisible, onClose, onCopyToEditor }) => {
         >
           <Ionicons name="send" size={24} color={globalStyles.colors.text} />
         </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.clearButton} 
+          onPress={clearChatHistory}
+        >
+          <Ionicons name="trash-outline" size={24} color={globalStyles.colors.text} />
+        </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
@@ -142,19 +205,17 @@ const ChatBot = ({ isVisible, onClose, onCopyToEditor }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: globalStyles.colors.background,
+    backgroundColor: 'transparent',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: globalStyles.padding.horizontal,
-    paddingVertical: globalStyles.padding.vertical,
-    borderBottomWidth: 1,
-    borderBottomColor: globalStyles.colors.overlay,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
   },
-  backButton: {
-    padding: 5,
+  placeholder: {
+    width: 34,
   },
   title: {
     color: globalStyles.colors.text,
@@ -162,9 +223,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     flex: 1,
-  },
-  placeholder: {
-    width: 34,
   },
   messagesContainer: {
     flex: 1,
@@ -183,11 +241,12 @@ const styles = StyleSheet.create({
   },
   assistantMessage: {
     alignSelf: 'flex-start',
-    backgroundColor: globalStyles.colors.overlay,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   messageText: {
     color: globalStyles.colors.text,
     fontSize: globalStyles.fontSize.default,
+    paddingRight: 60,
   },
   copyButton: {
     position: 'absolute',
@@ -201,14 +260,14 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     flexDirection: 'row',
-    paddingHorizontal: globalStyles.padding.horizontal,
-    paddingVertical: globalStyles.padding.vertical,
-    borderTopWidth: 1,
-    borderTopColor: globalStyles.colors.overlay,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    paddingBottom: globalStyles.padding.bottom,
+    alignItems: 'center',
   },
   input: {
     flex: 1,
-    backgroundColor: globalStyles.colors.overlay,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 20,
     paddingHorizontal: 15,
     paddingVertical: 10,
@@ -218,10 +277,19 @@ const styles = StyleSheet.create({
     fontSize: globalStyles.fontSize.default,
   },
   sendButton: {
-    width: 44,
-    height: 44,
-    backgroundColor: 'rgba(0, 122, 255, 0.3)',
-    borderRadius: 22,
+    width: 50,
+    height: 50,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  clearButton: {
+    width: 50,
+    height: 50,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -1,7 +1,10 @@
+import { Platform } from 'react-native';
+
 export const globalStyles = {
   padding: {
-    horizontal: 60,
-    vertical: 60,
+    horizontal: Platform.isPad ? 90 : 10,
+    vertical: Platform.isPad ? 60 : 10,
+    bottom: 60,
   },
   fontSize: {
     default: 20,

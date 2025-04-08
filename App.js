@@ -9,6 +9,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import Editor from './components/Editor';
 import NoteList from './components/NoteList';
 import Menu from './components/Menu';
+import BackButton from './components/BackButton';
 import ChatBot from './components/ChatBot';
 
 export default function App() {
@@ -223,6 +224,20 @@ export default function App() {
         <View style={styles.overlay}>
           <TouchableWithoutFeedback onPress={handleScreenTouch}>
             <SafeAreaView style={styles.safeArea}>
+              {selectedNote && (
+                <BackButton 
+                  setSelectedNote={setSelectedNote} 
+                  onCloseChat={toggleChat}
+                  isChatVisible={false}
+                />
+              )}
+              {isChatVisible && (
+                <BackButton 
+                  setSelectedNote={setSelectedNote} 
+                  onCloseChat={toggleChat}
+                  isChatVisible={true}
+                />
+              )}
               <Menu 
                 selectedNote={selectedNote}
                 addNote={addNote}
