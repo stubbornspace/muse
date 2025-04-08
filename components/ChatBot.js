@@ -87,10 +87,10 @@ const ChatBot = ({ isVisible, onClose, onCopyToEditor }) => {
     setIsLoading(true);
 
     try {
-      // Check if API key is available
-      const apiKey = process.env.OPENAI_API_KEY;
+      // Get API key from AsyncStorage
+      const apiKey = await AsyncStorage.getItem('openai_api_key');
       if (!apiKey) {
-        throw new Error('OpenAI API key is not configured');
+        throw new Error('OpenAI API key is not configured. Please add your API key in Settings.');
       }
 
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -124,11 +124,11 @@ const ChatBot = ({ isVisible, onClose, onCopyToEditor }) => {
       console.error('Error:', error);
       Alert.alert(
         'Error',
-        'Failed to get response from AI. Please check your API key configuration.'
+        error.message || 'Failed to get response from AI. Please check your API key configuration.'
       );
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: 'Sorry, I encountered an error. Please check your API key configuration.' 
+        content: 'Sorry, I encountered an error. Please check your API key configuration in Settings.' 
       }]);
     } finally {
       setIsLoading(false);

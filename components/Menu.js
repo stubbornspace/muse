@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, TouchableOpacity, View, Animated, Modal, Text, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Settings from './Settings';
 
 const Menu = ({ 
   selectedNote, 
@@ -16,6 +17,7 @@ const Menu = ({
   isChatVisible
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isSettingsVisible, setIsSettingsVisible] = useState(false);
 
   const menuItems = !selectedNote ? [
     { icon: "add-circle-outline", onPress: () => {
@@ -28,6 +30,10 @@ const Menu = ({
     }},
     { icon: "chatbubble-outline", onPress: () => {
       toggleChat();
+      setIsDropdownOpen(false);
+    }},
+    { icon: "settings-outline", onPress: () => {
+      setIsSettingsVisible(true);
       setIsDropdownOpen(false);
     }}
   ] : [
@@ -48,6 +54,10 @@ const Menu = ({
     }},
     { icon: "chatbubble-outline", onPress: () => {
       toggleChat();
+      setIsDropdownOpen(false);
+    }},
+    { icon: "settings-outline", onPress: () => {
+      setIsSettingsVisible(true);
       setIsDropdownOpen(false);
     }},
     { 
@@ -117,6 +127,11 @@ const Menu = ({
           </View>
         </TouchableOpacity>
       </Modal>
+
+      <Settings 
+        isVisible={isSettingsVisible} 
+        onClose={() => setIsSettingsVisible(false)} 
+      />
     </View>
   );
 };
@@ -149,6 +164,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 120,
     right: 15,
+    backgroundColor: 'transparent',
+    borderRadius: 10,
+    padding: 10,
+    width: 60,
   },
   dropdownItem: {
     width: 50,
